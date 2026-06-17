@@ -15,11 +15,17 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+      - name: Setup Node (needed for some build steps)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
       - name: Install dependencies and show environment
         run: |
           python -m pip install --upgrade pip setuptools wheel
           python -V
           python -c "import sys; print('executable:', sys.executable)"
+          node --version || true
+          npm --version || true
           pip --version
           pip install --no-cache-dir pyautogui pynput pymsgbox pyscreeze pygetwindow mouseinfo pyperclip pyinstaller==5.11
           pip list
@@ -60,11 +66,17 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+      - name: Setup Node (needed for some build steps)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
       - name: Install dependencies and show environment
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
           python3 -V
           python3 -c "import sys; print('executable:', sys.executable)"
+          node --version || true
+          npm --version || true
           pip --version || true
           # Install runtime deps but avoid opencv to reduce packaging complexity
           pip install --no-cache-dir pyautogui pynput pymsgbox pyscreeze pygetwindow mouseinfo pyperclip pyinstaller==5.11
