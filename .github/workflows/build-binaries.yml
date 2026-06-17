@@ -24,11 +24,18 @@ jobs:
           pip install --no-cache-dir pyautogui pynput pymsgbox pyscreeze pygetwindow mouseinfo pyperclip pyinstaller==5.11
           pip list
       - name: Build with PyInstaller (Windows GUI)
+        shell: powershell
         run: |
-          # Save PyInstaller output to a log file so we can upload it even if build fails
-          python -m PyInstaller --clean --log-level=DEBUG --noconfirm --onefile --add-data "targets;targets" --name autoclicker autoclick_image.py 2>&1 | Tee-Object -FilePath pyinstaller.log
-          echo "dist contents:"
-          if (Test-Path dist) { dir dist\* } else { echo "dist/ not found" }
+          # Determine Python base and tcl/dll directories for this runner
+          $pyBase = (python -c "import sys; print(sys.base_prefix)").Trim()
+          Write-Host "PYTHON BASE: $pyBase"
+          $tclDir = (python -c "import sys,os,tkinter; print(os.path.join(sys.base_prefix, 'tcl'))").Trim()
+          Write-Host "TCL DIR: $tclDir"
+          $dllDir = Join-Path $pyBase 'DLLs'
+          Write-Host "DLL DIR: $dllDir"
+          # Build the GUI executable and include tcl and DLLs
+          python -m PyInstaller --clean --log-level=DEBUG --noconfirm --onefile --windowed --add-data "$tclDir;./tcl" --add-data "$dllDir;./DLLs" --hidden-import tkinter --hidden-import tkinter.font --hidden-import tkinter.ttk --name autoclicker autoclick_gui.py 2>&1 | Tee-Object -FilePath pyinstaller.log
+          if (Test-Path dist) { dir dist\* } else { Write-Host "dist/ not found" }
       - name: Prepare artifact
         if: always()
         shell: powershell
