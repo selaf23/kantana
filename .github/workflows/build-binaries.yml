@@ -15,14 +15,19 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - name: Install dependencies
+      - name: Install dependencies and show environment
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
-      - name: Build with PyInstaller
+          python -m pip install --upgrade pip setuptools wheel
+          python -V
+          python -c "import sys; print('executable:', sys.executable)"
+          pip --version
+          pip install --no-cache-dir pyautogui pynput pymsgbox pyscreeze pygetwindow mouseinfo pyperclip pyinstaller==5.11
+          pip list
+      - name: Build with PyInstaller (Windows GUI)
         run: |
-          pyinstaller --clean --noconfirm --onefile --add-data "targets;targets" --name autoclicker autoclick_gui.py
+          python -m PyInstaller --clean --log-level=DEBUG --noconfirm --onefile --add-data "targets;targets" --hidden-import tkinter --name autoclicker autoclick_gui.py
+          echo "dist contents:"
+          dir dist\* || true
       - name: Prepare artifact
         shell: powershell
         run: |
@@ -44,14 +49,21 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - name: Install dependencies
+      - name: Install dependencies and show environment
         run: |
-          python3 -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
-      - name: Build with PyInstaller
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -V
+          python3 -c "import sys; print('executable:', sys.executable)"
+          pip --version || true
+          # Install runtime deps but avoid opencv to reduce packaging complexity
+          pip install --no-cache-dir pyautogui pynput pymsgbox pyscreeze pygetwindow mouseinfo pyperclip pyinstaller==5.11
+          pip list || true
+      - name: Build with PyInstaller (macOS - headless script)
         run: |
-          pyinstaller --clean --noconfirm --onefile --add-data "targets:targets" --name autoclicker autoclick_gui.py
+          # Building the GUI on macOS runners can fail due to missing Tk; build the headless script instead
+          python3 -m PyInstaller --clean --log-level=DEBUG --noconfirm --onefile --add-data "targets:targets" --name autoclicker autoclick_image.py
+          echo "dist contents:"
+          ls -la dist || true
       - name: Prepare artifact
         run: |
           mkdir -p artifact
